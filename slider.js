@@ -71,14 +71,18 @@ function Slider(infinite, sliderItemsPerRow, elm, arrowClassName){
     this.element.insertBefore(sliderItemsParent, nextArrow);
     sliderItemsParent.appendChild(sliderItemsContainer);
     
-    sliderItemsContainer.style.width = sliderItemsCount * 100 + "%";
+    sliderItemsContainer.style.width = (sliderItemsCount * 100) / sliderItemsPerRow + "%";
+    sliderItemsContainer.style.height = "100%";
+    sliderItemsContainer.style.transitionDuration = ".5s"; //TODO: FAIRE SYSTEME POUR CHOISIR CE TEMPS
     for (x = 0; x < sliderItemsCount; x++){
         sliderItemsContainer.appendChild(sliderItemsOfThisSlider[x]);
         sliderItemsOfThisSlider[x].classList.add("slider_items");
-        sliderItemsOfThisSlider[x].style.width = (100 / sliderItemsCount) / sliderItemsPerRow + "%";
+        sliderItemsOfThisSlider[x].style.width = (100 / sliderItemsCount) + "%";
     }
 
 }
+
+var translate = 0;
 
 function prev(){
 
@@ -86,8 +90,8 @@ function prev(){
 
     if (sliders[indexOfSlider].actual > 1){
 
-        destinationLeft -= sliderItemsWidth;
-        sliders[indexOfSlider].element.querySelector(".slider_items_parent").scrollTo({left: destinationLeft, behavior: "smooth"});
+        translate = translate + 20;
+        sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
         sliders[indexOfSlider].actual--;
 
     } else if (sliders[indexOfSlider].actual == 1){
@@ -97,17 +101,21 @@ function prev(){
             sliderItemsParent.prepend(sliderItems[sliderItemsCount - 1]);
             sliderItems = sliderParentOfClickedArrow.querySelectorAll(".slider_items");
 
-            destinationLeft += sliderItemsWidth;
-            sliders[indexOfSlider].element.querySelector(".slider_items_parent").scrollTo({left: destinationLeft});
+            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transitionDuration = "0s";
+            translate = translate - 20;
+            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
 
-            destinationLeft -= sliderItemsWidth;
-            sliders[indexOfSlider].element.querySelector(".slider_items_parent").scrollTo({left: destinationLeft, behavior: "smooth"});
-            sliders[indexOfSlider].actual = 1;
+            setTimeout(function() {
+                sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transitionDuration = ".5s";
+                translate = translate + 20;
+                sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
+                sliders[indexOfSlider].actual = 1;
+            }, 1);
 
         } else {
 
-            destinationLeft = sliderItemsWidth * (sliderItemsCount - (sliders[indexOfSlider].reduceItemsCountForSliderItemsPerRow + 1));
-            sliders[indexOfSlider].element.querySelector(".slider_items_parent").scrollTo({left: destinationLeft, behavior: "smooth"});
+            translate = (-80 + (20 * (sliders[indexOfSlider].sliderItemsPerRow - 1)));
+            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
             sliders[indexOfSlider].actual = sliderItemsCount - sliders[indexOfSlider].reduceItemsCountForSliderItemsPerRow;
 
         }
@@ -122,8 +130,8 @@ function next(){
 
     if (sliders[indexOfSlider].actual < sliderItemsCount - sliders[indexOfSlider].reduceItemsCountForSliderItemsPerRow){
 
-        destinationLeft += sliderItemsWidth;
-        sliders[indexOfSlider].element.querySelector(".slider_items_parent").scrollTo({left: destinationLeft, behavior: "smooth"});
+        translate = translate - 20;
+        sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
         sliders[indexOfSlider].actual++;
 
     } else if (sliders[indexOfSlider].actual == sliderItemsCount - sliders[indexOfSlider].reduceItemsCountForSliderItemsPerRow){
@@ -133,17 +141,22 @@ function next(){
             sliderItemsParent.appendChild(sliderItems[0]);
             sliderItems = sliderParentOfClickedArrow.querySelectorAll(".slider_items");
 
-            destinationLeft -= sliderItemsWidth;
-            sliders[indexOfSlider].element.querySelector(".slider_items_parent").scrollTo({left: destinationLeft});
+            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transitionDuration = "0s";
+            translate = translate + 20;
+            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
 
-            destinationLeft += sliderItemsWidth;
-            sliders[indexOfSlider].element.querySelector(".slider_items_parent").scrollTo({left: destinationLeft, behavior: "smooth"});
-            sliders[indexOfSlider].actual = sliderItemsCount - sliders[indexOfSlider].reduceItemsCountForSliderItemsPerRow;
+            setTimeout(function() {
+                sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transitionDuration = ".5s";
+                translate = translate - 20;
+                sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
+                sliders[indexOfSlider].actual = sliderItemsCount - sliders[indexOfSlider].reduceItemsCountForSliderItemsPerRow;
+            }, 1);
+            
 
         } else {
 
-            destinationLeft = 0; 
-            sliders[indexOfSlider].element.querySelector(".slider_items_parent").scrollTo({left: destinationLeft, behavior: "smooth"});
+            translate = 0;
+            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
             sliders[indexOfSlider].actual = 1;
 
         }
