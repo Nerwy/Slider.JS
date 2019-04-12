@@ -43,6 +43,7 @@ function Slider(infinite, sliderItemsPerRow, elm, arrowClassName){
     this.elmName = elm.id;
     this.arrowClassName = arrowClassName;
     this.actual = 1;
+    this.translateValue = 0;
     this.reduceItemsCountForSliderItemsPerRow = sliderItemsPerRow - 1;
     // this.next = next;
 
@@ -82,7 +83,7 @@ function Slider(infinite, sliderItemsPerRow, elm, arrowClassName){
 
 }
 
-var translate = 0;
+// var translate = 0;
 
 function prev(){
 
@@ -90,8 +91,8 @@ function prev(){
 
     if (sliders[indexOfSlider].actual > 1){
 
-        translate = translate + 20;
-        sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
+        sliders[indexOfSlider].translateValue += 20;
+        sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + sliders[indexOfSlider].translateValue + "%)";
         sliders[indexOfSlider].actual--;
 
     } else if (sliders[indexOfSlider].actual == 1){
@@ -102,20 +103,20 @@ function prev(){
             sliderItems = sliderParentOfClickedArrow.querySelectorAll(".slider_items");
 
             sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transitionDuration = "0s";
-            translate = translate - 20;
-            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
+            sliders[indexOfSlider].translateValue -= 20;
+            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + sliders[indexOfSlider].translateValue + "%)";
 
             setTimeout(function() {
                 sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transitionDuration = ".5s";
-                translate = translate + 20;
-                sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
+                sliders[indexOfSlider].translateValue += 20;
+                sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + sliders[indexOfSlider].translateValue + "%)";
                 sliders[indexOfSlider].actual = 1;
             }, 1);
 
         } else {
 
-            translate = (-80 + (20 * (sliders[indexOfSlider].sliderItemsPerRow - 1)));
-            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
+            sliders[indexOfSlider].translateValue = (-80 + (20 * (sliders[indexOfSlider].sliderItemsPerRow - 1)));
+            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + sliders[indexOfSlider].translateValue + "%)";
             sliders[indexOfSlider].actual = sliderItemsCount - sliders[indexOfSlider].reduceItemsCountForSliderItemsPerRow;
 
         }
@@ -130,8 +131,8 @@ function next(){
 
     if (sliders[indexOfSlider].actual < sliderItemsCount - sliders[indexOfSlider].reduceItemsCountForSliderItemsPerRow){
 
-        translate = translate - 20;
-        sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
+        sliders[indexOfSlider].translateValue -= 20;
+        sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" +  sliders[indexOfSlider].translateValue + "%)";
         sliders[indexOfSlider].actual++;
 
     } else if (sliders[indexOfSlider].actual == sliderItemsCount - sliders[indexOfSlider].reduceItemsCountForSliderItemsPerRow){
@@ -142,21 +143,21 @@ function next(){
             sliderItems = sliderParentOfClickedArrow.querySelectorAll(".slider_items");
 
             sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transitionDuration = "0s";
-            translate = translate + 20;
-            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
+            sliders[indexOfSlider].translateValue += 20;
+            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" +  sliders[indexOfSlider].translateValue + "%)";
 
             setTimeout(function() {
                 sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transitionDuration = ".5s";
-                translate = translate - 20;
-                sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
+                sliders[indexOfSlider].translateValue -= 20;
+                sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" +  sliders[indexOfSlider].translateValue + "%)";
                 sliders[indexOfSlider].actual = sliderItemsCount - sliders[indexOfSlider].reduceItemsCountForSliderItemsPerRow;
             }, 1);
             
 
         } else {
 
-            translate = 0;
-            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" + translate + "%)";
+            sliders[indexOfSlider].translateValue = 0;
+            sliders[indexOfSlider].element.querySelector(".slider_items_container").style.transform = "translateX(" +  sliders[indexOfSlider].translateValue + "%)";
             sliders[indexOfSlider].actual = 1;
 
         }
