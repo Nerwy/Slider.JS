@@ -1,15 +1,28 @@
-var sliders = [],
-    destinationLeft = 0;
+var sliders = [];
 
 // new SlidersFactory(true, 1, ".slider");
 
 // var test = new SlidersFactory(true, 1, ".sliderslider");
 
-function SlidersFactory(infinite, sliderItemsPerRow, elmName, arrowClassName){
+function SlidersFactory(infinite, sliderItemsPerRow, elmName, animationParams, arrowClassName){
 
     var infinite = (typeof infinite === "boolean") ? infinite : false;
 
     var sliderItemsPerRow = (typeof sliderItemsPerRow === "number" && sliderItemsPerRow > 0) ? ((sliderItemsPerRow <= 15) ? sliderItemsPerRow : 15) : 1;
+
+    var animationParamsVar;
+        if (typeof animationParams === "string" && animationParams.length > 0){
+            animationParamsVar = animationParams.split(" ");
+
+            if (animationParamsVar[0].indexOf("s") != -1 && animationParamsVar[0].indexOf("1" || "2" || "3" || "4" || "5" || "6" || "7" || "8" || "9") != -1){
+                animationParamsVar = animationParamsVar.join(" ");
+            } else {
+                animationParamsVar = ".5s " + animationParamsVar[1];
+            }
+
+        } else {
+            animationParamsVar = ".5s ease-in-out";
+        }
 
     var arrowClassName = (typeof arrowClassName === "string" && arrowClassName.length > 0) ? arrowClassName : "slider_arrow";
 
@@ -22,7 +35,7 @@ function SlidersFactory(infinite, sliderItemsPerRow, elmName, arrowClassName){
 
                 if (!elm.id) {elm.id = `${elmName.substring(1)}_${i}`;};
 
-                new Slider(infinite, sliderItemsPerRow, elm, arrowClassName);
+                new Slider(infinite, sliderItemsPerRow, elm, animationParamsVar, arrowClassName);
             }
 
         } else {
@@ -35,10 +48,11 @@ function SlidersFactory(infinite, sliderItemsPerRow, elmName, arrowClassName){
 
 }
 
-function Slider(infinite, sliderItemsPerRow, elm, arrowClassName){
+function Slider(infinite, sliderItemsPerRow, elm, animationParams, arrowClassName){
     
     this.infinite = infinite;
     this.sliderItemsPerRow = sliderItemsPerRow;
+    this.animationParams = animationParams;
     this.element = elm;
     this.elmName = elm.id;
     this.arrowClassName = arrowClassName;
@@ -72,9 +86,10 @@ function Slider(infinite, sliderItemsPerRow, elm, arrowClassName){
     this.element.insertBefore(sliderItemsParent, nextArrow);
     sliderItemsParent.appendChild(sliderItemsContainer);
     
-    sliderItemsContainer.style.width = (sliderItemsCount * 100) / sliderItemsPerRow + "%";
+    sliderItemsContainer.style.width = (sliderItemsCount * 100) / this.sliderItemsPerRow + "%";
     sliderItemsContainer.style.height = "100%";
-    sliderItemsContainer.style.transitionDuration = ".5s"; //TODO: FAIRE SYSTEME POUR CHOISIR CE TEMPS
+    sliderItemsContainer.style.transition = this.animationParams;
+
     for (x = 0; x < sliderItemsCount; x++){
         sliderItemsContainer.appendChild(sliderItemsOfThisSlider[x]);
         sliderItemsOfThisSlider[x].classList.add("slider_items");
@@ -82,8 +97,6 @@ function Slider(infinite, sliderItemsPerRow, elm, arrowClassName){
     }
 
 }
-
-// var translate = 0;
 
 function prev(){
 
