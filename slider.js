@@ -1,12 +1,31 @@
 var sliders = [];
 
-function SlidersFactory(infinite, overflowHidden, sliderItemsPerRow, elmName, animationParams, arrowClassName){
+function SlidersFactory(infinite, overflowHidden, sliderItemsPerRow, autoSlide, elmName, animationParams, arrowClassName){
 
     var infinite = (typeof infinite === "boolean") ? infinite : false;
 
     var overflowHidden = (typeof overflowHidden === "boolean") ? overflowHidden : true;
 
     var sliderItemsPerRow = (typeof sliderItemsPerRow === "number" && sliderItemsPerRow > 0) ? ((sliderItemsPerRow <= 15) ? sliderItemsPerRow : 15) : 1;
+
+    var autoSlideVarBool;
+    var autoSlideVarTime;
+        if (typeof autoSlide === "string" && autoSlide.length > 0 && autoSlide.indexOf(" ") != -1){
+            autoSlide = autoSlide.split(" ");
+
+            (autoSlide[0] == "true") ? autoSlideVarBool = true : autoSlideVarBool = false;
+
+            if (autoSlideVarBool) {
+                if (typeof parseInt(autoSlide[1]) === "number"){
+                    (isNaN(parseInt(autoSlide[1]))) ? autoSlideVarTime = 5000 : autoSlideVarTime = parseInt(autoSlide[1]) * 1000;
+                } else {
+                    autoSlideVarTime = 5000;
+                }
+            }
+
+        } else {
+            autoSlideVarBool = false;
+        }
 
     var animationParamsVar;
         if (typeof animationParams === "string" && animationParams.length > 0){
@@ -33,7 +52,7 @@ function SlidersFactory(infinite, overflowHidden, sliderItemsPerRow, elmName, an
 
                 if (!elm.id) {elm.id = `${elmName.substring(1)}_${i}`;};
 
-                new Slider(infinite, overflowHidden, sliderItemsPerRow, elm, animationParamsVar, arrowClassName);
+                new Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideVarBool, autoSlideVarTime, elm, animationParamsVar, arrowClassName);
             }
 
         } else {
@@ -46,17 +65,20 @@ function SlidersFactory(infinite, overflowHidden, sliderItemsPerRow, elmName, an
 
 }
 
-function Slider(infinite, overflowHidden, sliderItemsPerRow, elm, animationParams, arrowClassName){
+function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, autoSlideTime, elm, animationParams, arrowClassName){
 
     var self = this;
     
     this.infinite = infinite;
     this.overflowHidden = overflowHidden;
     this.sliderItemsPerRow = sliderItemsPerRow;
-    this.animationParams = animationParams;
+    this.autoSlideBool = autoSlideBool;
+    this.autoSlideTime = autoSlideTime;
     this.element = elm;
     this.elmName = elm.id;
+    this.animationParams = animationParams;
     this.arrowClassName = arrowClassName;
+
     this.actual = 1;
     this.translateValue = 0;
     this.reduceItemsCountForSliderItemsPerRow = sliderItemsPerRow - 1;
@@ -99,7 +121,7 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, elm, animationParam
             sliderItemsOfThisSlider[x].style.width = (100 / sliderItemsCount) + "%";
         }
 
-    //SLIDER METHODS
+    //SLIDER NEXT AND PREV METHODS
         this.prev = function(){
         
             if (this.actual > 1){
@@ -183,6 +205,15 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, elm, animationParam
 
         function nextItem(){
             self.next();
+        }
+
+    //AUTO SLIDE
+        if (this.autoSlideBool == true){
+            
+            setInterval(function() {
+                self.next();
+            }, this.autoSlideTime);
+
         }
 
 }
