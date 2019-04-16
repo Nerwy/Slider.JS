@@ -121,7 +121,10 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
             sliderItemsOfThisSlider[x].style.width = (100 / sliderItemsCount) + "%";
         }
 
-    //SLIDER NEXT AND PREV METHODS
+    //SLIDER METHODS
+        var lockAutoSlide = false;
+            // jumpItems = 1;
+
         this.prev = function(){
         
             if (this.actual > 1){
@@ -185,7 +188,6 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
                         sliderItemsContainer.style.transform = "translateX(" +  self.translateValue + "%)";
                         self.actual = sliderItemsCount - self.reduceItemsCountForSliderItemsPerRow;
                     }, 1);
-                    
         
                 } else {
         
@@ -196,24 +198,61 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
                 }
         
             }
-        
+
+        }
+
+        this.goToItem = function(itemToGo){
+
+            var differenceToGoAtItem = itemToGo - this.actual;
+
+            if (differenceToGoAtItem > 0){
+                
+                for (differenceToGoAtItem; differenceToGoAtItem > 0; differenceToGoAtItem--){
+                    self.next();
+                }
+
+            } else if (differenceToGoAtItem < 0){
+
+                for (differenceToGoAtItem; differenceToGoAtItem < 0; differenceToGoAtItem++){
+                    self.prev();
+                }
+
+            }
+
         }
 
         function prevItem(){
+            lockAutoSlide = true;
+            clearTimeout(AutoSlideTimer);
+
             self.prev();
+
+            var AutoSlideTimer = setTimeout(function() {
+                lockAutoSlide = false;
+            }, 10000);
         }
 
         function nextItem(){
+            lockAutoSlide = true;
+            clearTimeout(AutoSlideTimer);
+
             self.next();
+
+            var AutoSlideTimer = setTimeout(function() {
+                lockAutoSlide = false;
+            }, 10000);
         }
 
-    //AUTO SLIDE
-        if (this.autoSlideBool == true){
-            
-            setInterval(function() {
-                self.next();
-            }, this.autoSlideTime);
+        //AUTO SLIDE
 
-        }
+            if (this.autoSlideBool == true){
+
+                setInterval(function() {
+                    if (!lockAutoSlide){
+                        self.next();
+                    }
+                }, this.autoSlideTime);
+
+            }    
 
 }
