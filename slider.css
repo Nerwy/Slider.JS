@@ -1,0 +1,47 @@
+.navigation_point{
+    display: inline-block;
+    height: 15px;
+    width: 15px;
+    background-color: black;
+    margin: 0 20px;
+    transition: .25s;
+    cursor: pointer;
+}
+
+.navigation_point:hover{
+    background-color: #000000a1;
+    transition: .25s;
+}
+
+.slider_arrow{
+    position: absolute;
+    height: 30px;
+    width: 30px;
+    border-right: solid 2px black;
+    border-bottom: solid 2px black;
+    z-index: 100;
+    cursor: pointer;
+    transition: .5s;
+}.slider_arrow:hover{
+    border-right-color: rgb(99, 99, 99);
+    border-bottom-color: rgb(99, 99, 99);
+    transition: .5s;
+}
+
+/* FOR HORIZONTAL SLIDER */
+    .slider_arrow.prev{
+        transform: rotate(135deg);
+        left: 10%;
+    }.slider_arrow.next{
+        transform: rotate(-45deg);
+        right: 10%;
+    }
+
+/* FOR VERTICAL SLIDER */
+    /* .slider_arrow.prev {
+        transform: rotate(225deg);
+        top: 5%;
+    }.slider_arrow.next {
+        transform: rotate(45deg);
+        bottom: 5%;
+    } */

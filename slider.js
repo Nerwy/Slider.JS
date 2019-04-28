@@ -1,6 +1,9 @@
 var sliders = [];
 
-function SlidersFactory(infinite, overflowHidden, sliderItemsPerRow, autoSlide, elmName, animationParams, sliderOrientation, arrowClassName){
+//new SlidersFactory(true, true, 1, "true 6", ".slider", ".5s ease-in-out", "horizontal", true, true);
+//infinite, overflowHidden, sliderItemsPerRow, autoSlide, elmName, animationParams, sliderOrientation, navigationArrow, navigationPoint
+
+function SlidersFactory(infinite, overflowHidden, sliderItemsPerRow, autoSlide, elmName, animationParams, sliderOrientation, navigationArrow, navigationPoint){
 
     var infinite = (typeof infinite === "boolean") ? infinite : false;
 
@@ -45,16 +48,18 @@ function SlidersFactory(infinite, overflowHidden, sliderItemsPerRow, autoSlide, 
         if (typeof sliderOrientation === "string" && sliderOrientation.length > 0 && (sliderOrientation.indexOf("vertical") != -1 || sliderOrientation.indexOf("horizontal") != - 1)){
 
             if (sliderOrientation.indexOf("vertical") != -1) {
-                sliderOrientationVar = "Y"
+                sliderOrientationVar = "Y";
             } else if (sliderOrientation.indexOf("horizontal") != -1){
-                sliderOrientationVar = "X"
+                sliderOrientationVar = "X";
             }
 
         } else {
             sliderOrientationVar = "X";
         }
 
-    var arrowClassName = (typeof arrowClassName === "string" && arrowClassName.length > 0) ? arrowClassName : "slider_arrow";
+    
+    var navigationPoint = (typeof navigationPoint === "boolean") ? navigationPoint : false;
+    var navigationArrow = (typeof navigationArrow === "boolean") ? ((navigationPoint == false && navigationArrow == false) ? true : navigationArrow) : true;
 
     if (typeof elmName === "string" && elmName.length > 0) {
 
@@ -65,7 +70,7 @@ function SlidersFactory(infinite, overflowHidden, sliderItemsPerRow, autoSlide, 
 
                 if (!elm.id) {elm.id = `${elmName.substring(1)}_${i}`;};
 
-                new Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideVarBool, autoSlideVarTime, elm, animationParamsVar, sliderOrientationVar, arrowClassName);
+                new Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideVarBool, autoSlideVarTime, elm, animationParamsVar, sliderOrientationVar, navigationArrow, navigationPoint);
             }
 
         } else {
@@ -78,7 +83,7 @@ function SlidersFactory(infinite, overflowHidden, sliderItemsPerRow, autoSlide, 
 
 }
 
-function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, autoSlideTime, elm, animationParams, sliderOrientation, arrowClassName){
+function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, autoSlideTime, elm, animationParams, sliderOrientation, navigationArrow, navigationPoint){
 
     var self = this;
     
@@ -90,9 +95,10 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
     this.element = elm;
     this.elmName = elm.id;
     this.animationParams = animationParams;
-    this.arrowClassName = arrowClassName;
+    this.navigationArrow = navigationArrow;
+    this.navigationPoint = navigationPoint;
     this.sliderOrientation = sliderOrientation;
-    
+
     this.actual = 1;
     this.translateValue = 0;
     this.reduceItemsCountForSliderItemsPerRow = sliderItemsPerRow - 1;
@@ -100,27 +106,15 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
     //SLIDER BUILD
         sliders.push(this);
 
-        var prevArrow = document.createElement("span"),
-            nextArrow = document.createElement("span");
-
-        prevArrow.classList.add(arrowClassName); prevArrow.classList.add("prev");
-        nextArrow.classList.add(arrowClassName); nextArrow.classList.add("next");
-
-        this.element.prepend(prevArrow);
-        this.element.appendChild(nextArrow);
-
-        prevArrow.onclick = prevItem;
-        nextArrow.onclick = nextItem;
-
         var sliderItemsOfThisSlider = this.element.querySelectorAll(`#${this.elmName}>div`),
             sliderItemsCount = sliderItemsOfThisSlider.length,
             sliderItemsParent = document.createElement("div"),
-            sliderItemsContainer = document.createElement("div");
-
+            sliderItemsContainer = document.createElement("div"),
+            itemWidth;
+            
         sliderItemsParent.classList.add("slider_items_parent");
-        sliderItemsContainer.classList.add("slider_items_container");
 
-        this.element.insertBefore(sliderItemsParent, nextArrow);
+        this.element.appendChild(sliderItemsParent);
         sliderItemsParent.appendChild(sliderItemsContainer);
 
         sliderItemsParent.style.overflow = (this.overflowHidden) ? "hidden" : "visible";
@@ -131,20 +125,69 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
         var animationTime = this.animationParams.split(" ")[0];
 
         for (x = 0; x < sliderItemsCount; x++){
+
             sliderItemsContainer.appendChild(sliderItemsOfThisSlider[x]);
             sliderItemsOfThisSlider[x].classList.add("slider_items");
 
             (this.sliderOrientation === "Y") ? (sliderItemsOfThisSlider[x].style.height = (100 / sliderItemsCount) + "%", sliderItemsOfThisSlider[x].style.width = "100%") :                                                             (sliderItemsOfThisSlider[x].style.height = "100%", sliderItemsOfThisSlider[x].style.width = (100 / sliderItemsCount) + "%");
+
+            itemWidth = parseFloat(sliderItemsOfThisSlider[x].style.width);
+
+            for (var i = 0; i < sliderItemsPerRow; i++){
+                sliderItemsOfThisSlider[(this.actual - 1) + i].classList.add("active");
+            }
+
         }
 
-    //SLIDER METHODS
-        var lockAutoSlide = false;
+        if (this.navigationArrow){
+
+            var prevArrow = document.createElement("span"),
+                nextArrow = document.createElement("span");
+
+            prevArrow.classList.add("slider_arrow"); prevArrow.classList.add("prev");
+            nextArrow.classList.add("slider_arrow"); nextArrow.classList.add("next");
+
+            this.element.appendChild(prevArrow);
+            this.element.appendChild(nextArrow);
+
+            prevArrow.onclick = prevItem;
+            nextArrow.onclick = nextItem;
+
+        }
+
+        if (this.navigationPoint){
+            
+            var navigationPointContainer = document.createElement("div");
+            navigationPointContainer.classList.add("navigation_point_container");
+
+            this.element.appendChild(navigationPointContainer);
+            
+            for (var i = 1; i <= sliderItemsCount; i++) {
+
+                var navigationPoint = document.createElement("span");
+
+                navigationPoint.classList.add("navigation_point");
+                navigationPointContainer.appendChild(navigationPoint);
+
+                navigationPoint.onclick = goToItemCaller.bind(null, i);
+
+            }
+
+        }
+
+    //SLIDER METHOD
+        var animationRunning = false,
+            lockAutoSlide = false;
 
         this.prev = function(){
+
+            for (var i = 0; i < sliderItemsPerRow; i++){
+                sliderItemsOfThisSlider[(this.actual - 1) + i].classList.remove("active");
+            }
         
             if (this.actual > 1){
 
-                this.translateValue += 20;
+                this.translateValue += itemWidth;
                 sliderItemsContainer.style.transform = `translate${this.sliderOrientation}(${this.translateValue}%)`;
                 this.actual--;
         
@@ -156,36 +199,45 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
                     sliderItemsOfThisSlider = this.element.querySelectorAll(".slider_items");
         
                     sliderItemsContainer.style.transitionDuration = "0s";
-                    this.translateValue -= 20;
+                    this.translateValue -= itemWidth;
                     sliderItemsContainer.style.transform = `translate${this.sliderOrientation}(${this.translateValue}%)`;
         
                     setTimeout(function() {
                         sliderItemsContainer.style.transitionDuration = animationTime;
-                        self.translateValue += 20;
+                        self.translateValue += itemWidth;
                         sliderItemsContainer.style.transform = `translate${self.sliderOrientation}(${self.translateValue}%)`;
                         self.actual = 1;
-                    }, 1);
+                    }, 10);
         
                 } else {
+
         
-                    this.translateValue = (-80 + (20 * (sliderItemsPerRow - 1)));
+                    this.translateValue = (-itemWidth * (sliderItemsCount - sliderItemsPerRow));
                     sliderItemsContainer.style.transform = `translate${this.sliderOrientation}(${this.translateValue}%)`;
                     this.actual = sliderItemsCount - this.reduceItemsCountForSliderItemsPerRow;
         
                 }
         
             }
-        
+
+            for(var i = 0; i < sliderItemsPerRow; i++){
+                sliderItemsOfThisSlider[(this.actual - 1) + i].classList.add("active");
+            }
+
         }
 
         this.next = function(){
+
+            for(var i = 0; i < sliderItemsPerRow; i++){
+                sliderItemsOfThisSlider[(this.actual - 1) + i].classList.remove("active");
+            }
         
             if (this.actual < sliderItemsCount - this.reduceItemsCountForSliderItemsPerRow){
         
-                this.translateValue -= 20;
+                this.translateValue -= itemWidth;
                 sliderItemsContainer.style.transform = `translate${this.sliderOrientation}(${this.translateValue}%)`;
                 this.actual++;
-        
+
             } else if (this.actual == sliderItemsCount - this.reduceItemsCountForSliderItemsPerRow){
         
                 if (this.infinite){
@@ -194,15 +246,15 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
                     sliderItemsOfThisSlider = this.element.querySelectorAll(".slider_items");
         
                     sliderItemsContainer.style.transitionDuration = "0s";
-                    this.translateValue += 20;
+                    this.translateValue += itemWidth;
                     sliderItemsContainer.style.transform = `translate${this.sliderOrientation}(${this.translateValue}%)`;
         
                     setTimeout(function() {
                         sliderItemsContainer.style.transitionDuration = animationTime;
-                        self.translateValue -= 20;
+                        self.translateValue -= itemWidth;
                         sliderItemsContainer.style.transform = `translate${self.sliderOrientation}(${self.translateValue}%)`;
                         self.actual = sliderItemsCount - self.reduceItemsCountForSliderItemsPerRow;
-                    }, 1);
+                    }, 10);
         
                 } else {
         
@@ -214,6 +266,10 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
         
             }
 
+            for(var i = 0; i < sliderItemsPerRow; i++){
+                sliderItemsOfThisSlider[(this.actual - 1) + i].classList.add("active");
+            }
+
         }
 
         this.goToItem = function(itemToGo){
@@ -222,13 +278,13 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
 
             if (differenceToGoAtSpecifiedItem > 0){
                 
-                for (differenceToGoAtSpecifiedItem; differenceToGoAtItem > 0; differenceToGoAtItem--){
+                for (differenceToGoAtSpecifiedItem; differenceToGoAtSpecifiedItem > 0; differenceToGoAtSpecifiedItem--){
                     self.next();
                 }
 
             } else if (differenceToGoAtSpecifiedItem < 0){
 
-                for (differenceToGoAtSpecifiedItem; differenceToGoAtItem < 0; differenceToGoAtItem++){
+                for (differenceToGoAtSpecifiedItem; differenceToGoAtSpecifiedItem < 0; differenceToGoAtSpecifiedItem++){
                     self.prev();
                 }
 
@@ -236,26 +292,40 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
 
         }
 
+        function goToItemCaller(itemToGo){
+
+            if (!animationRunning){
+                self.goToItem(itemToGo);
+            }
+
+        }
+
         function prevItem(){
-            lockAutoSlide = true;
-            clearTimeout(AutoSlideTimer);
 
-            self.prev();
+            if (!animationRunning){
+                animationRunning = true;
+                lockAutoSlide = true;
 
-            var AutoSlideTimer = setTimeout(function() {
-                lockAutoSlide = false;
-            }, 10000);
+                self.prev();
+
+                setTimeout(function() { animationRunning = false; }, parseFloat(animationTime) * 1000);
+                setTimeout(function() { lockAutoSlide = false; }, 10000);
+            }
+
         }
 
         function nextItem(){
-            lockAutoSlide = true;
-            clearTimeout(AutoSlideTimer);
 
-            self.next();
+            if (!animationRunning){
+                animationRunning = true;
+                lockAutoSlide = true;
 
-            var AutoSlideTimer = setTimeout(function() {
-                lockAutoSlide = false;
-            }, 10000);
+                self.next();
+
+                setTimeout(function() { animationRunning = false; }, parseFloat(animationTime) * 1000);
+                setTimeout(function() { lockAutoSlide = false; }, 10000);
+            }
+
         }
 
         //AUTO SLIDE
@@ -263,7 +333,7 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
             if (this.autoSlideBool == true){
 
                 setInterval(function() {
-                    if (!lockAutoSlide){
+                    if (!animationRunning && !lockAutoSlide){
                         self.next();
                     }
                 }, this.autoSlideTime);
