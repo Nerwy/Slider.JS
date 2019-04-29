@@ -85,7 +85,8 @@ function SlidersFactory(infinite, overflowHidden, sliderItemsPerRow, autoSlide, 
 
 function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, autoSlideTime, elm, animationParams, sliderOrientation, navigationArrow, navigationPoint){
 
-    var self = this;
+    var self = this,
+        translateValue = 0;
     
     this.infinite = infinite;
     this.overflowHidden = overflowHidden;
@@ -124,21 +125,6 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
         sliderItemsContainer.style.transition = this.animationParams;
         var animationTime = this.animationParams.split(" ")[0];
 
-        for (x = 0; x < sliderItemsCount; x++){
-
-            sliderItemsContainer.appendChild(sliderItemsOfThisSlider[x]);
-            sliderItemsOfThisSlider[x].classList.add("slider_items");
-
-            (this.sliderOrientation === "Y") ? (sliderItemsOfThisSlider[x].style.height = (100 / sliderItemsCount) + "%", sliderItemsOfThisSlider[x].style.width = "100%") :                                                             (sliderItemsOfThisSlider[x].style.height = "100%", sliderItemsOfThisSlider[x].style.width = (100 / sliderItemsCount) + "%");
-
-            itemWidth = parseFloat(sliderItemsOfThisSlider[x].style.width);
-
-            for (var i = 0; i < sliderItemsPerRow; i++){
-                sliderItemsOfThisSlider[(this.actual - 1) + i].classList.add("active");
-            }
-
-        }
-
         if (this.navigationArrow){
 
             var prevArrow = document.createElement("span"),
@@ -147,7 +133,7 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
             prevArrow.classList.add("slider_arrow"); prevArrow.classList.add("prev");
             nextArrow.classList.add("slider_arrow"); nextArrow.classList.add("next");
 
-            this.element.appendChild(prevArrow);
+            this.element.prepend(prevArrow);
             this.element.appendChild(nextArrow);
 
             prevArrow.onclick = prevItem;
@@ -173,21 +159,61 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
 
             }
 
+            var navigationPoints = this.element.querySelectorAll(".navigation_point");
+
         }
 
-    //SLIDER METHOD
+        for (x = 0; x < sliderItemsCount; x++){
+
+            sliderItemsContainer.appendChild(sliderItemsOfThisSlider[x]);
+            sliderItemsOfThisSlider[x].classList.add("slider_items");
+
+            (this.sliderOrientation === "Y") ? (sliderItemsOfThisSlider[x].style.height = (100 / sliderItemsCount) + "%", sliderItemsOfThisSlider[x].style.width = "100%", translateValue = parseFloat(sliderItemsOfThisSlider[x].style.height)) : (sliderItemsOfThisSlider[x].style.height = "100%", sliderItemsOfThisSlider[x].style.width = (100 / sliderItemsCount) + "%", translateValue = parseFloat(sliderItemsOfThisSlider[x].style.width));
+
+            for (var i = 0; i < sliderItemsPerRow; i++){
+                sliderItemsOfThisSlider[(this.actual - 1) + i].classList.add("active");
+                if (this.navigationPoint){navigationPoints[(this.actual - 1) + i].classList.add("active");}
+            }
+
+        }
+
+
+    //SLIDER METHODS
         var animationRunning = false,
-            lockAutoSlide = false;
+            lockAutoSlide = false,
+            animation = "";
+
+        if (this.infinite && !this.overflowHidden){
+
+            sliderItemsContainer.prepend(sliderItemsOfThisSlider[sliderItemsCount - 1]);
+            sliderItemsOfThisSlider = this.element.querySelectorAll(".slider_items");
+
+            sliderItemsContainer.style.transitionDuration = "0s";
+            this.translateValue -= translateValue;
+            sliderItemsContainer.style.transform = `translate${this.sliderOrientation}(${this.translateValue}%)`;
+
+            this.actual = 2;
+
+        }
 
         this.prev = function(){
 
+            animation = "prev";
+
             for (var i = 0; i < sliderItemsPerRow; i++){
                 sliderItemsOfThisSlider[(this.actual - 1) + i].classList.remove("active");
+                if (this.navigationPoint){navigationPoints[(this.actual - 1) + i].classList.remove("active");}
             }
-        
-            if (this.actual > 1){
 
-                this.translateValue += itemWidth;
+           if (this.infinite && this.actual == 2 && !this.overflowHidden){
+
+                infiniteSlide();
+
+                this.actual = 2;
+
+            } else if (this.actual > 1){
+
+                this.translateValue += translateValue;
                 sliderItemsContainer.style.transform = `translate${this.sliderOrientation}(${this.translateValue}%)`;
                 this.actual--;
         
@@ -195,24 +221,13 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
         
                 if (this.infinite){
 
-                    sliderItemsContainer.prepend(sliderItemsOfThisSlider[sliderItemsCount - 1]);
-                    sliderItemsOfThisSlider = this.element.querySelectorAll(".slider_items");
-        
-                    sliderItemsContainer.style.transitionDuration = "0s";
-                    this.translateValue -= itemWidth;
-                    sliderItemsContainer.style.transform = `translate${this.sliderOrientation}(${this.translateValue}%)`;
-        
-                    setTimeout(function() {
-                        sliderItemsContainer.style.transitionDuration = animationTime;
-                        self.translateValue += itemWidth;
-                        sliderItemsContainer.style.transform = `translate${self.sliderOrientation}(${self.translateValue}%)`;
-                        self.actual = 1;
-                    }, 10);
+                    infiniteSlide();
+
+                    this.actual = 1;
         
                 } else {
 
-        
-                    this.translateValue = (-itemWidth * (sliderItemsCount - sliderItemsPerRow));
+                    this.translateValue = (-translateValue * (sliderItemsCount - sliderItemsPerRow));
                     sliderItemsContainer.style.transform = `translate${this.sliderOrientation}(${this.translateValue}%)`;
                     this.actual = sliderItemsCount - this.reduceItemsCountForSliderItemsPerRow;
         
@@ -220,41 +235,42 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
         
             }
 
-            for(var i = 0; i < sliderItemsPerRow; i++){
+            for (var i = 0; i < sliderItemsPerRow; i++){
                 sliderItemsOfThisSlider[(this.actual - 1) + i].classList.add("active");
+                if (this.navigationPoint){navigationPoints[(this.actual - 1) + i].classList.add("active");}
             }
 
         }
 
         this.next = function(){
 
-            for(var i = 0; i < sliderItemsPerRow; i++){
+            animation = "next";
+
+            for (var i = 0; i < sliderItemsPerRow; i++){
                 sliderItemsOfThisSlider[(this.actual - 1) + i].classList.remove("active");
+                if (this.navigationPoint){navigationPoints[(this.actual - 1) + i].classList.remove("active");}
             }
         
-            if (this.actual < sliderItemsCount - this.reduceItemsCountForSliderItemsPerRow){
-        
-                this.translateValue -= itemWidth;
+            if (this.infinite && this.actual == (sliderItemsCount - this.reduceItemsCountForSliderItemsPerRow) - 1 && !this.overflowHidden){
+
+                infiniteSlide();
+
+                this.actual = (sliderItemsCount - this.reduceItemsCountForSliderItemsPerRow) - 1;
+
+            } else if (this.actual < sliderItemsCount - this.reduceItemsCountForSliderItemsPerRow){
+
+                sliderItemsContainer.style.transitionDuration = animationTime;
+                this.translateValue -= translateValue;
                 sliderItemsContainer.style.transform = `translate${this.sliderOrientation}(${this.translateValue}%)`;
                 this.actual++;
 
             } else if (this.actual == sliderItemsCount - this.reduceItemsCountForSliderItemsPerRow){
         
                 if (this.infinite){
-        
-                    sliderItemsContainer.appendChild(sliderItemsOfThisSlider[0]);
-                    sliderItemsOfThisSlider = this.element.querySelectorAll(".slider_items");
-        
-                    sliderItemsContainer.style.transitionDuration = "0s";
-                    this.translateValue += itemWidth;
-                    sliderItemsContainer.style.transform = `translate${this.sliderOrientation}(${this.translateValue}%)`;
-        
-                    setTimeout(function() {
-                        sliderItemsContainer.style.transitionDuration = animationTime;
-                        self.translateValue -= itemWidth;
-                        sliderItemsContainer.style.transform = `translate${self.sliderOrientation}(${self.translateValue}%)`;
-                        self.actual = sliderItemsCount - self.reduceItemsCountForSliderItemsPerRow;
-                    }, 10);
+                    
+                    infiniteSlide();
+
+                    this.actual = sliderItemsCount - this.reduceItemsCountForSliderItemsPerRow;
         
                 } else {
         
@@ -266,9 +282,27 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
         
             }
 
-            for(var i = 0; i < sliderItemsPerRow; i++){
+            for (var i = 0; i < sliderItemsPerRow; i++){
                 sliderItemsOfThisSlider[(this.actual - 1) + i].classList.add("active");
+                if (this.navigationPoint){navigationPoints[(this.actual - 1)  + i].classList.add("active");}
             }
+
+        }
+
+        function infiniteSlide(){
+
+            (animation == "prev") ? sliderItemsContainer.prepend(sliderItemsOfThisSlider[sliderItemsCount - 1]) : sliderItemsContainer.appendChild(sliderItemsOfThisSlider[0]);
+            sliderItemsOfThisSlider = self.element.querySelectorAll(".slider_items");
+
+            sliderItemsContainer.style.transitionDuration = "0s";
+            (animation == "prev") ? self.translateValue -= translateValue : self.translateValue += translateValue;
+            sliderItemsContainer.style.transform = `translate${self.sliderOrientation}(${self.translateValue}%)`;
+
+            setTimeout(function() {
+                sliderItemsContainer.style.transitionDuration = animationTime;
+                (animation == "prev") ? self.translateValue += translateValue : self.translateValue -= translateValue;
+                sliderItemsContainer.style.transform = `translate${self.sliderOrientation}(${self.translateValue}%)`;
+            }, 10);
 
         }
 
@@ -328,6 +362,7 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
 
         }
 
+
         //AUTO SLIDE
 
             if (this.autoSlideBool == true){
@@ -338,6 +373,30 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
                     }
                 }, this.autoSlideTime);
 
-            }    
+            }
+
+            
+        //SLIDE ON SWIPE
+            
+            var swipeZone = document.querySelector(`#${this.elmName}`);
+
+            SwipeListener(swipeZone, preventScroll = true);
+            swipeZone.addEventListener('swipe', function (event) {
+                var directions = event.detail.directions;
+
+                if (sliderOrientation === "X"){
+                    if (directions.left) {nextItem();}
+                    if (directions.right) {prevItem();}
+                } else {
+                    if (directions.top) {nextItem();}
+                    if (directions.bottom) {prevItem();}
+                }
+
+            });
 
 }
+
+
+
+//SWIPE DETECTION'S SCRIPT
+'use strict';var _extends=Object.assign||function(a){for(var b,c=1;c<arguments.length;c++)for(var d in b=arguments[c],b)Object.prototype.hasOwnProperty.call(b,d)&&(a[d]=b[d]);return a},SwipeListener=function(a,b){if(a){'undefined'!=typeof window&&function(){function a(a,b){b=b||{bubbles:!1,cancelable:!1,detail:void 0};var c=document.createEvent('CustomEvent');return c.initCustomEvent(a,b.bubbles,b.cancelable,b.detail),c}return'function'!=typeof window.CustomEvent&&void(a.prototype=window.Event.prototype,window.CustomEvent=a)}();b||(b={}),b=_extends({},{minHorizontal:10,minVertical:10,deltaHorizontal:3,deltaVertical:5,preventScroll:!1,lockAxis:!0},b);var c=[],d=!1,e=function(){d=!0};a.addEventListener('mousedown',e);var f=function(a){d=!1,h(a)};a.addEventListener('mouseup',f);var g=function(a){d&&(a.changedTouches=[{clientX:a.clientX,clientY:a.clientY}],i(a))};a.addEventListener('mousemove',g);var h=function(d){var e=Math.abs,f=Math.max,g=Math.min;if(c.length){for(var h=d instanceof TouchEvent,j=[],k=[],l={top:!1,right:!1,bottom:!1,left:!1},m=0;m<c.length;m++)j.push(c[m].x),k.push(c[m].y);var i=j[0],n=j[j.length-1],o=k[0],p=k[k.length-1],q={x:[i,n],y:[o,p]};if(1<c.length){var r={detail:_extends({touch:h},q)},s=new CustomEvent('swiperelease',r);a.dispatchEvent(s)}var t=j[0]-j[j.length-1],u='none';u=0<t?'left':'right';var v,w=g.apply(Math,j),x=f.apply(Math,j);if(e(t)>=b.minHorizontal&&('left'==u?(v=e(w-j[j.length-1]),v<=b.deltaHorizontal&&(l.left=!0)):'right'==u?(v=e(x-j[j.length-1]),v<=b.deltaHorizontal&&(l.right=!0)):void 0),t=k[0]-k[k.length-1],u='none',u=0<t?'top':'bottom',w=g.apply(Math,k),x=f.apply(Math,k),e(t)>=b.minVertical&&('top'==u?(v=e(w-k[k.length-1]),v<=b.deltaVertical&&(l.top=!0)):'bottom'==u?(v=e(x-k[k.length-1]),v<=b.deltaVertical&&(l.bottom=!0)):void 0),(c=[],l.top||l.right||l.bottom||l.left)){b.lockAxis&&((l.left||l.right)&&e(i-n)>e(o-p)?l.top=l.bottom=!1:(l.top||l.bottom)&&e(i-n)<e(o-p)&&(l.left=l.right=!1));var y={detail:_extends({directions:l,touch:h},q)},z=new CustomEvent('swipe',y);a.dispatchEvent(z)}else{var A=new CustomEvent('swipecancel',{detail:_extends({touch:h},q)});a.dispatchEvent(A)}}},i=function(d){b.preventScroll&&d.preventDefault();var e=d.changedTouches[0];if(c.push({x:e.clientX,y:e.clientY}),1<c.length){var f=c[0].x,g=c[c.length-1].x,h=c[0].y,i=c[c.length-1].y,j={detail:{x:[f,g],y:[h,i],touch:d instanceof TouchEvent}},k=new CustomEvent('swiping',j);a.dispatchEvent(k)}},j=!1;try{var k=Object.defineProperty({},'passive',{get:function(){j={passive:!b.preventScroll}}});window.addEventListener('testPassive',null,k),window.removeEventListener('testPassive',null,k)}catch(a){}return a.addEventListener('touchmove',i,j),a.addEventListener('touchend',h),{off:function(){a.removeEventListener('touchmove',i,j),a.removeEventListener('touchend',h),a.removeEventListener('mousedown',e),a.removeEventListener('mouseup',f),a.removeEventListener('mousemove',g)}}}};'undefined'!=typeof module&&'undefined'!=typeof module.exports?module.exports=SwipeListener:'function'==typeof define&&define.amd?define([],function(){return SwipeListener}):window.SwipeListener=SwipeListener;

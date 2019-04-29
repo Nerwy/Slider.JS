@@ -1,3 +1,11 @@
+.navigation_point_container{
+    position: absolute;
+    bottom: -30px;
+    height: 15px;
+    width: 100%;
+    text-align: center;
+}
+
 .navigation_point{
     display: inline-block;
     height: 15px;
@@ -8,10 +16,12 @@
     cursor: pointer;
 }
 
-.navigation_point:hover{
+.navigation_point:hover, .navigation_point.active{
     background-color: #000000a1;
     transition: .25s;
 }
+
+/*=========================================================================*/
 
 .slider_arrow{
     position: absolute;
@@ -19,7 +29,7 @@
     width: 30px;
     border-right: solid 2px black;
     border-bottom: solid 2px black;
-    z-index: 100;
+    z-index: 90;
     cursor: pointer;
     transition: .5s;
 }.slider_arrow:hover{
