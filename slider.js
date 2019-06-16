@@ -1,5 +1,5 @@
 var sliders = [];
-
+    
 //new SlidersFactory(true, true, 1, "true 6", ".slider", ".5s ease-in-out", "horizontal", true, true);
 //infinite, overflowHidden, sliderItemsPerRow, autoSlide, elmName, animationParams, sliderOrientation, navigationArrow, navigationPoint
 
@@ -102,7 +102,6 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
 
     this.actual = 1;
     this.translateValue = 0;
-    this.reduceItemsCountForSliderItemsPerRow = sliderItemsPerRow - 1;
 
     //SLIDER BUILD
         sliders.push(this);
@@ -110,8 +109,14 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
         var sliderItemsOfThisSlider = this.element.querySelectorAll(`#${this.elmName}>div`),
             sliderItemsCount = sliderItemsOfThisSlider.length,
             sliderItemsParent = document.createElement("div"),
-            sliderItemsContainer = document.createElement("div"),
-            itemWidth;
+            sliderItemsContainer = document.createElement("div");
+            
+            
+        if (this.sliderItemsPerRow > sliderItemsCount) {
+            this.sliderItemsPerRow = sliderItemsCount - 1;
+        }
+        this.reduceItemsCountForSliderItemsPerRow = this.sliderItemsPerRow - 1;
+
             
         sliderItemsParent.classList.add("slider_items_parent");
 
@@ -170,7 +175,7 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
 
             (this.sliderOrientation === "Y") ? (sliderItemsOfThisSlider[x].style.height = (100 / sliderItemsCount) + "%", sliderItemsOfThisSlider[x].style.width = "100%", translateValue = parseFloat(sliderItemsOfThisSlider[x].style.height)) : (sliderItemsOfThisSlider[x].style.height = "100%", sliderItemsOfThisSlider[x].style.width = (100 / sliderItemsCount) + "%", translateValue = parseFloat(sliderItemsOfThisSlider[x].style.width));
 
-            for (var i = 0; i < sliderItemsPerRow; i++){
+            for (var i = 0; i < this.sliderItemsPerRow; i++){
                 sliderItemsOfThisSlider[(this.actual - 1) + i].classList.add("active");
                 if (this.navigationPoint){navigationPoints[(this.actual - 1) + i].classList.add("active");}
             }
@@ -200,7 +205,7 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
 
             animation = "prev";
 
-            for (var i = 0; i < sliderItemsPerRow; i++){
+            for (var i = 0; i < this.sliderItemsPerRow; i++){
                 sliderItemsOfThisSlider[(this.actual - 1) + i].classList.remove("active");
                 if (this.navigationPoint){navigationPoints[(this.actual - 1) + i].classList.remove("active");}
             }
@@ -235,7 +240,7 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
         
             }
 
-            for (var i = 0; i < sliderItemsPerRow; i++){
+            for (var i = 0; i < this.sliderItemsPerRow; i++){
                 sliderItemsOfThisSlider[(this.actual - 1) + i].classList.add("active");
                 if (this.navigationPoint){navigationPoints[(this.actual - 1) + i].classList.add("active");}
             }
@@ -246,7 +251,7 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
 
             animation = "next";
 
-            for (var i = 0; i < sliderItemsPerRow; i++){
+            for (var i = 0; i < this.sliderItemsPerRow; i++){
                 sliderItemsOfThisSlider[(this.actual - 1) + i].classList.remove("active");
                 if (this.navigationPoint){navigationPoints[(this.actual - 1) + i].classList.remove("active");}
             }
@@ -282,7 +287,7 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
         
             }
 
-            for (var i = 0; i < sliderItemsPerRow; i++){
+            for (var i = 0; i < this.sliderItemsPerRow; i++){
                 sliderItemsOfThisSlider[(this.actual - 1) + i].classList.add("active");
                 if (this.navigationPoint){navigationPoints[(this.actual - 1)  + i].classList.add("active");}
             }
@@ -309,7 +314,6 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
         this.goToItem = function(itemToGo){
 
             var differenceToGoAtSpecifiedItem = itemToGo - this.actual;
-
             if (differenceToGoAtSpecifiedItem > 0){
                 
                 for (differenceToGoAtSpecifiedItem; differenceToGoAtSpecifiedItem > 0; differenceToGoAtSpecifiedItem--){
@@ -317,7 +321,7 @@ function Slider(infinite, overflowHidden, sliderItemsPerRow, autoSlideBool, auto
                 }
 
             } else if (differenceToGoAtSpecifiedItem < 0){
-
+                
                 for (differenceToGoAtSpecifiedItem; differenceToGoAtSpecifiedItem < 0; differenceToGoAtSpecifiedItem++){
                     self.prev();
                 }
